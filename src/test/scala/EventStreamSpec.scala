@@ -43,5 +43,39 @@ class EventStreamSpec extends Specification {
 
     }
 
+    "combine ok" in {
+
+      var result: List[Int] = Nil
+
+      val e = EventStream[String, Int](s => s.length)
+
+      val s1 = e.map(l => l * 2)
+      val s2 = e.map(l => l * 4)
+
+      s2.combine(s1).run(v => result = v :: result)
+
+      e.push("ab")
+
+      result must_==(List(4, 8))
+
+    }
+
+    "filter ok" in {
+
+      var result: List[Int] = Nil
+
+      val e = EventStream[String, Int](s => s.length)
+
+      val s1 = e.map(l => l * 2)
+      val s2 = e.map(l => l * 4)
+
+      s2.combine(s1).filter(v => v < 5).run(v => result = v :: result)
+
+      e.push("ab")
+
+      result must_==(List(4))
+
+    }
+
   }
 }
