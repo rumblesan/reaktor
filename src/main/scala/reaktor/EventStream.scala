@@ -1,56 +1,66 @@
 package com.rumblesan.reaktor
 
-trait EventStream[EventType] {
+import scalaz._, Scalaz._
 
-  def events: List[EventType]
+class EventStream[InputEvent, OutputEvent](handlerFunc: InputEvent => OutputEvent) {
 
-}
+  private var listeners: List[OutputEvent => Unit] = Nil
 
+  private val handler: InputEvent => OutputEvent = handlerFunc
 
-object EventStream {
+  type Subscriber[Out] = EventStream[OutputEvent, Out]
+  type Pusher[In] = EventStream[In, OutputEvent]
 
-  def push[EventType](
-    stream: EventStream[EventType],
-    event: EventType
-  ): EventStream[EventType] = {
-    stream
+  def subscribe[SubscriberOutput](
+    subscriber: EventStream[OutputEvent, SubscriberOutput]
+  ): EventStream[OutputEvent, SubscriberOutput] = {
+    val func: OutputEvent => Unit = event => subscriber.push(event)
+    listeners = func :: listeners
+    subscriber
   }
 
-  def map[EventType](
-    stream: EventStream[EventType],
-    func: EventType => EventType
-  ): EventStream[EventType] = {
-    stream
-  }
+  def push(event: InputEvent): Unit = {
 
-  def flatMap[EventType](
-    stream: EventStream[EventType],
-    func: EventType => EventStream[EventType]
-  ): EventStream[EventType] = {
-    stream
-  }
+    val newEvent: OutputEvent = handler(event)
 
-  def filter[EventType](
-    stream: EventStream[EventType],
-    func: EventType => Boolean
-  ): EventStream[EventType] = {
-    stream
-  }
+    listeners.map(l => l(newEvent))
 
-  def combine[EventType](
-    left: EventStream[EventType],
-    right: EventStream[EventType]
-  ): EventStream[EventType] = {
-    left
-  }
-
-  def run[EventType](
-    stream: EventStream[EventType],
-    func: EventType => Unit
-  ): Unit = {
     ()
   }
 
+  def map[SubscriberOutput](func: OutputEvent => SubscriberOutput): Subscriber[SubscriberOutput] = {
+    subscribe(new EventStream[OutputEvent, SubscriberOutput](func))
+  }
+
+  def filter(predicate: OutputEvent => Boolean): Subscriber[OutputEvent] = {
+    val subscriber = EventStream[OutputEvent, OutputEvent](identity)
+
+    val func: OutputEvent => Unit = event => {
+      if (predicate(event)) subscriber.push(event)
+    }
+
+    listeners = func :: listeners
+    subscriber
+  }
+
+  def combine[PusherInput](pusher: Pusher[PusherInput]): EventStream[OutputEvent, OutputEvent] = {
+    val newStream = EventStream[OutputEvent, OutputEvent](identity)
+    subscribe[OutputEvent](newStream)
+    pusher.subscribe[OutputEvent](newStream)
+    newStream
+  }
+
+  def run(func: OutputEvent => Unit): Unit = {
+    listeners = func :: listeners
+  }
+
 }
 
+object EventStream {
+
+  def apply[InputEvent, OutputEvent](handlerFunc: InputEvent => OutputEvent): EventStream[InputEvent, OutputEvent] = {
+    new EventStream[InputEvent, OutputEvent](handlerFunc)
+  }
+
+}
 
