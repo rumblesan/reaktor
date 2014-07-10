@@ -1,29 +1,33 @@
 package com.rumblesan.reaktor
 
-trait StateStream[EventType, StateType] {
+class StateStream[InputEvent, StateType, OutputEvent](
+  initialState: StateType,
+  handlerFunc: (StateType, InputEvent) => (StateType, OutputEvent)
+) extends EventOps[InputEvent, OutputEvent] {
+
+  override var listeners: List[OutputEvent => Unit] = Nil
+
+  private var internalState: StateType = initialState
+
+  override val handler: InputEvent => OutputEvent = {
+    event => {
+      val (newState, newEvent) = handlerFunc(internalState, event)
+      internalState = newState
+      newEvent
+    }
+  }
+
+  def state = internalState
+
 }
 
 object StateStream {
 
-  def map[EventType, StateType](
-    stream: StateStream[EventType, StateType],
-    func: EventType => EventType
-  ): StateStream[EventType, StateType] = {
-    stream
-  }
-
-  def filter[EventType, StateType](
-    stream: StateStream[EventType, StateType],
-    func: EventType => Boolean
-  ): StateStream[EventType, StateType] = {
-    stream
-  }
-
-  def run[EventType, StateType](
-    stream: StateStream[EventType, StateType],
-    func: StateType => Unit
-  ): Unit = {
-    ()
+  def apply[InputEvent, StateType, OutputEvent](
+    initialState: StateType,
+    handlerFunc: (StateType, InputEvent) => (StateType, OutputEvent)
+  ) = {
+    new StateStream(initialState, handlerFunc)
   }
 
 }
