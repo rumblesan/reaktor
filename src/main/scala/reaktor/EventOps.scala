@@ -1,10 +1,15 @@
 package com.rumblesan.reaktor
 
 import scalaz._, Scalaz._
+import scalaz.concurrent.Actor
+import scalaz.concurrent.Strategy.DefaultStrategy
+
 
 trait EventOps[InputEvent, OutputEvent] {
 
   var listeners: List[OutputEvent => Unit]
+
+  val actor: Actor[InputEvent] = Actor(act _, e => println(e.getMessage))
 
   val handler: InputEvent => OutputEvent
 
@@ -20,6 +25,10 @@ trait EventOps[InputEvent, OutputEvent] {
   }
 
   def push(event: InputEvent): Unit = {
+    actor ! event
+  }
+
+  def act(event: InputEvent): Unit = {
 
     val newEvent: OutputEvent = handler(event)
 
