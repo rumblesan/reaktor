@@ -3,6 +3,7 @@ package com.rumblesan.reaktor.tests
 import org.specs2.mutable._
 
 import com.rumblesan.reaktor._
+import scalaz.concurrent.Strategy.Sequential
 
 
 class EventSinkSpec extends Specification {
