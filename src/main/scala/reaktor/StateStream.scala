@@ -12,7 +12,7 @@ class StateStream[InputEvent, StateType, OutputEvent](
   eventHandler: OutputEvent => Unit
 )(
   implicit val strategy: Strategy
-) extends EventStream[InputEvent] {
+) extends EventStreamBase[InputEvent] {
 
   private var internalState: AtomicReference[StateType] = new AtomicReference(initialState)
 

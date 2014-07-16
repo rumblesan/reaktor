@@ -89,7 +89,7 @@ class EventSinkSpec extends Specification {
       val s2 = EventSink[Int](e => result2 = e).push[Int](e => e + 2)
       val s3 = EventSink[Int](e => result3 = e).push[Int](e => e + 3)
 
-      val e = EventStream.fanOut(s1, s2, s3).push[Int](e => e * 2)
+      val e = EventStreamOps.fanOut(s1, s2, s3).push[Int](e => e * 2)
 
       e(3)
       result1 must_==(7)

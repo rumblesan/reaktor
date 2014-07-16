@@ -80,7 +80,7 @@ class StateSinkSpec extends Specification {
       val s2 = StateSink[Int, Int]((s, e) => e + 2, 0)
       val s3 = StateSink[Int, Int]((s, e) => e + 3, 0)
 
-      val e = EventStream.fanOut(s1, s2, s3).push[Int](e => e * 2)
+      val e = EventStreamOps.fanOut(s1, s2, s3).push[Int](e => e * 2)
 
       e(2)
       s1.getState must_==(5)

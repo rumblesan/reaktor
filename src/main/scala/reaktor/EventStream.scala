@@ -1,39 +1,28 @@
 package com.rumblesan.reaktor
 
+import scalaz._, Scalaz._
+import scalaz.concurrent.{ Actor, Strategy }
 
-trait EventStreamOps[InputEvent] {
 
-  def self: EventStream[InputEvent]
+class EventStream[InputEvent](
+  handler: InputEvent => Unit
+)(
+  implicit val strategy: Strategy
+) extends EventStreamBase[InputEvent] {
 
-  def push[ParentOutputEvent](func: ParentOutputEvent => InputEvent): EventSink[ParentOutputEvent] = {
-    new EventSink(self.apply _ compose func)
-  }
+  val actor: Actor[InputEvent] = Actor(handler, e => println(e.getMessage))
 
-  def <<=[ParentOutputEvent] = push[ParentOutputEvent] _
-
-  def filter(predicate: InputEvent => Boolean): EventSink[InputEvent] = {
-    new EventSink(event => if (predicate(event)) self.apply(event))
-  }
-
-}
-
-trait EventStream[InputEvent] {
-
-  def apply(event: InputEvent): Unit
+  def apply(event: InputEvent): Unit = actor(event)
 
 }
 
 object EventStream {
 
-  implicit def ToEventStreamOps[InputEvent](e: EventStream[InputEvent]): EventStreamOps[InputEvent] =
-    new EventStreamOps[InputEvent] {
-      def self = e
-    }
-
-  def fanOut[InputEvent](children: EventStream[InputEvent]*): EventStream[InputEvent] = {
-    val func = (event: InputEvent) => children.foreach(c => c(event))
-    new EventSink(func)
-  }
+  def apply[InputEvent](
+    handler: InputEvent => Unit
+  )(
+    implicit strategy: Strategy
+  ): EventStream[InputEvent] = new EventStream(handler)
 
 }
 
