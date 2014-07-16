@@ -60,6 +60,24 @@ class EventSinkSpec extends Specification {
       result must_==(6)
 
     }
+    "fan events in ok" in {
+
+      var result: Int = 0
+
+      val s  = EventSink[Int](e => result = e).push[Int](e => e + 1)
+      val e1 = s push ((str: String) => str.length)
+      val e2 = s push ((i: Int) => i * 2)
+
+      s(3)
+      result must_==(4)
+
+      e1("abcde")
+      result must_==(6)
+
+      e2(7)
+      result must_==(15)
+
+    }
 
   }
 }

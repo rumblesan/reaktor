@@ -59,5 +59,23 @@ class StateSinkSpec extends Specification {
 
     }
 
+    "fan events in ok" in {
+
+      val s = StateSink[Int, Int]((state, event) => event + 1, 0)
+      val e1 = s push ((str: String) => str.length)
+      val e2 = s push ((i: Int) => i * 2)
+
+      s(3)
+      s.getState must_==(4)
+
+      e1("abcde")
+      s.getState must_==(6)
+
+      e2(7)
+      s.getState must_==(15)
+
+    }
+
+
   }
 }
