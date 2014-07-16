@@ -6,9 +6,10 @@ import scalaz.concurrent.{ Actor, Strategy }
 import java.util.concurrent.atomic.AtomicReference
 
 
-class StateSink[InputEvent, StateType](
-  handler: (StateType, InputEvent) => StateType,
-  initialState: StateType
+class StateSink[InputEvent, StateType, OutputEvent](
+  stateModifier: (StateType, InputEvent) => (StateType, Option[OutputEvent]),
+  initialState: StateType,
+  eventHandler: Option[OutputEvent] => Unit
 )(
   implicit val strategy: Strategy
 ) extends EventStream[InputEvent] {
@@ -16,7 +17,9 @@ class StateSink[InputEvent, StateType](
   private var internalState: AtomicReference[StateType] = new AtomicReference(initialState)
 
   val actor: Actor[InputEvent] = Actor(event => {
-    internalState.set(handler(internalState.get, event))
+    val (newState, eventOpt) = stateModifier(internalState.get, event)
+    internalState.set(newState)
+    eventHandler(eventOpt)
   }, e => println(e.getMessage))
 
   def apply(event: InputEvent): Unit = actor(event)
@@ -27,12 +30,18 @@ class StateSink[InputEvent, StateType](
 
 object StateSink {
 
-  def apply[StateType, InputEvent](
-    handler: (StateType, InputEvent) => StateType,
+  def apply[InputEvent, StateType](
+    stateModifier: (StateType, InputEvent) => StateType,
     initialState: StateType
   )(
     implicit strategy: Strategy
-  ) = new StateSink(handler, initialState)
+  ) = new StateSink(
+    (state: StateType, event: InputEvent) => {
+      (stateModifier(state, event), None)
+    },
+    initialState,
+    (e: Any) => ()
+  )
 
 }
 
