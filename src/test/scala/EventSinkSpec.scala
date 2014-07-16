@@ -79,5 +79,24 @@ class EventSinkSpec extends Specification {
 
     }
 
+    "fan events out ok" in {
+
+      var result1: Int = 0
+      var result2: Int = 0
+      var result3: Int = 0
+
+      val s1 = EventSink[Int](e => result1 = e).push[Int](e => e + 1)
+      val s2 = EventSink[Int](e => result2 = e).push[Int](e => e + 2)
+      val s3 = EventSink[Int](e => result3 = e).push[Int](e => e + 3)
+
+      val e = EventStream.fanOut(s1, s2, s3).push[Int](e => e * 2)
+
+      e(3)
+      result1 must_==(7)
+      result2 must_==(8)
+      result3 must_==(9)
+
+    }
+
   }
 }

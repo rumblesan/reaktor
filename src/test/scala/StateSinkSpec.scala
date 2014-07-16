@@ -58,7 +58,6 @@ class StateSinkSpec extends Specification {
       s.getState must_==(6)
 
     }
-
     "fan events in ok" in {
 
       val s = StateSink[Int, Int]((state, event) => event + 1, 0)
@@ -73,6 +72,20 @@ class StateSinkSpec extends Specification {
 
       e2(7)
       s.getState must_==(15)
+
+    }
+    "fan events out ok" in {
+
+      val s1 = StateSink[Int, Int]((s, e) => e + 1, 0)
+      val s2 = StateSink[Int, Int]((s, e) => e + 2, 0)
+      val s3 = StateSink[Int, Int]((s, e) => e + 3, 0)
+
+      val e = EventStream.fanOut(s1, s2, s3).push[Int](e => e * 2)
+
+      e(2)
+      s1.getState must_==(5)
+      s2.getState must_==(6)
+      s3.getState must_==(7)
 
     }
 

@@ -30,5 +30,10 @@ object EventStream {
       def self = e
     }
 
+  def fanOut[InputEvent](children: EventStream[InputEvent]*): EventStream[InputEvent] = {
+    val func = (event: InputEvent) => children.foreach(c => c(event))
+    new EventSink(func)
+  }
+
 }
 
