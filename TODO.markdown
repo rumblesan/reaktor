@@ -1,7 +1,6 @@
 TODO
 ====
 
-* make getState method atomic
 * test fanning events in
 * create way to fan events out
 * create event aggregator/state machine

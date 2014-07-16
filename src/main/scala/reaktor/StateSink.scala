@@ -3,6 +3,8 @@ package com.rumblesan.reaktor
 import scalaz._, Scalaz._
 import scalaz.concurrent.{ Actor, Strategy }
 
+import java.util.concurrent.atomic.AtomicReference
+
 
 class StateSink[InputEvent, StateType](
   handler: (StateType, InputEvent) => StateType,
@@ -11,15 +13,15 @@ class StateSink[InputEvent, StateType](
   implicit val strategy: Strategy
 ) extends EventStream[InputEvent] {
 
-  private var state: StateType = initialState
+  private var internalState: AtomicReference[StateType] = new AtomicReference(initialState)
 
   val actor: Actor[InputEvent] = Actor(event => {
-    state = handler(state, event)
+    internalState.set(handler(internalState.get, event))
   }, e => println(e.getMessage))
 
   def apply(event: InputEvent): Unit = actor(event)
 
-  def getState = state
+  def getState = internalState.get
 
 }
 
