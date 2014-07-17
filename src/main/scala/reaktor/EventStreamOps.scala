@@ -18,6 +18,13 @@ trait EventStreamOps[InputEvent] {
     new EventStream(event => if (predicate(event)) self.apply(event))
   }
 
+  def fromSource(
+    loopsPerSecond: Int,
+    source: () => InputEvent
+  ): EventSource[InputEvent] = {
+    new EventSource(loopsPerSecond, source, self.apply, None)
+  }
+
 }
 
 
