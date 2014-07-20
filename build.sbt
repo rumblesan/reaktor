@@ -2,8 +2,6 @@ name := "Reaktor"
 
 organization := "com.rumblesan"
 
-version := "0.1.1-SNAPSHOT"
-
 scalaVersion := "2.10.4"
 
 libraryDependencies ++= Seq(
