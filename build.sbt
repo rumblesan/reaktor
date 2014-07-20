@@ -18,3 +18,7 @@ libraryDependencies ++= Seq(
 initialCommands := "import com.rumblesan.reaktor._"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-language:_")
+
+// settings for sbt-release plugin
+releaseSettings
+
