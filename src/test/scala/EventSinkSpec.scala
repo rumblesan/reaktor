@@ -61,6 +61,29 @@ class EventSinkSpec extends Specification {
       result must_==(6)
 
     }
+
+    "push maybe works ok" in {
+
+      var result: Int = 0
+
+      val s = EventSink[Int](e => result = e).pushMaybe[Int](e => {
+        if (e % 2 == 0) Some(e + 1)
+        else None
+      })
+
+      s(3)
+      result must_==(0)
+
+      result = 0
+      s(2)
+      result must_==(3)
+
+      result = 0
+      s(5)
+      result must_==(0)
+
+    }
+
     "fan events in ok" in {
 
       var result: Int = 0

@@ -59,6 +59,24 @@ class StateSinkSpec extends Specification {
       s.getState must_==(6)
 
     }
+    "push maybe works ok" in {
+
+      val s = StateSink[Int, Int]((state, event) => event, 0)
+      val e = s.pushMaybe[Int](e => {
+        if (e % 2 == 0) Some(e + 1)
+        else None
+      })
+
+      e(3)
+      s.getState must_==(0)
+
+      e(2)
+      s.getState must_==(3)
+
+      e(5)
+      s.getState must_==(3)
+
+    }
     "fan events in ok" in {
 
       val s = StateSink[Int, Int]((state, event) => event + 1, 0)

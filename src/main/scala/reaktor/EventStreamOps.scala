@@ -12,7 +12,18 @@ trait EventStreamOps[InputEvent] {
     new EventStream(self.apply _ compose func)
   }
 
+  def pushMaybe[ParentOutputEvent](func: ParentOutputEvent => Option[InputEvent]): EventStream[ParentOutputEvent] = {
+    val f: ParentOutputEvent => Unit = e => {
+      func(e).map(self.apply)
+      ()
+    }
+    new EventStream(f)
+  }
+
+
   def <<=[ParentOutputEvent] = push[ParentOutputEvent] _
+
+  def <<=?[ParentOutputEvent] = pushMaybe[ParentOutputEvent] _
 
   def filter(predicate: InputEvent => Boolean): EventStream[InputEvent] = {
     new EventStream(event => if (predicate(event)) self.apply(event))
