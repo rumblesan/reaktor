@@ -8,11 +8,19 @@ trait EventStreamOps[InputEvent] {
 
   def self: EventStreamBase[InputEvent]
 
-  def push[ParentOutputEvent](func: ParentOutputEvent => InputEvent): EventStream[ParentOutputEvent] = {
+  def push[ParentOutputEvent](
+    func: ParentOutputEvent => InputEvent
+  )(
+    implicit strategy: Strategy
+  ): EventStream[ParentOutputEvent] = {
     new EventStream(self.apply _ compose func)
   }
 
-  def pushMaybe[ParentOutputEvent](func: ParentOutputEvent => Option[InputEvent]): EventStream[ParentOutputEvent] = {
+  def pushMaybe[ParentOutputEvent](
+    func: ParentOutputEvent => Option[InputEvent]
+  )(
+    implicit strategy: Strategy
+  ): EventStream[ParentOutputEvent] = {
     val f: ParentOutputEvent => Unit = e => {
       func(e).map(self.apply)
       ()
@@ -25,7 +33,11 @@ trait EventStreamOps[InputEvent] {
 
   def <<=?[ParentOutputEvent] = pushMaybe[ParentOutputEvent] _
 
-  def filter(predicate: InputEvent => Boolean): EventStream[InputEvent] = {
+  def filter(
+    predicate: InputEvent => Boolean
+  )(
+    implicit strategy: Strategy
+  ): EventStream[InputEvent] = {
     new EventStream(event => if (predicate(event)) self.apply(event))
   }
 
@@ -41,7 +53,11 @@ trait EventStreamOps[InputEvent] {
 
 object EventStreamOps {
 
-  def fanOut[InputEvent](children: EventStreamBase[InputEvent]*): EventStream[InputEvent] = {
+  def fanOut[InputEvent](
+    children: EventStreamBase[InputEvent]*
+  )(
+    implicit strategy: Strategy
+  ): EventStream[InputEvent] = {
     val func = (event: InputEvent) => children.foreach(c => c(event))
     new EventStream(func)
   }
