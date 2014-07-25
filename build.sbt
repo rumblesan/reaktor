@@ -2,7 +2,7 @@ name := "Reaktor"
 
 organization := "com.rumblesan"
 
-scalaVersion := "2.10.4"
+scalaVersion := "2.11.2"
 
 libraryDependencies ++= Seq(
   "org.specs2" %% "specs2" % "2.3.13" % "test",
