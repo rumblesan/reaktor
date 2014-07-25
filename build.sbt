@@ -20,3 +20,15 @@ scalacOptions ++= Seq("-unchecked", "-deprecation", "-language:_")
 // settings for sbt-release plugin
 releaseSettings
 
+ReleaseKeys.releaseProcess := Seq[sbtrelease.ReleaseStep](
+  sbtrelease.ReleaseStateTransformations.checkSnapshotDependencies,
+  sbtrelease.ReleaseStateTransformations.inquireVersions,
+  sbtrelease.ReleaseStateTransformations.runClean,
+  sbtrelease.ReleaseStateTransformations.runTest,
+  sbtrelease.ReleaseStateTransformations.setReleaseVersion,
+  sbtrelease.ReleaseStateTransformations.commitReleaseVersion,
+  sbtrelease.ReleaseStateTransformations.tagRelease,
+  sbtrelease.ReleaseStateTransformations.setNextVersion,
+  sbtrelease.ReleaseStateTransformations.commitNextVersion
+)
+
